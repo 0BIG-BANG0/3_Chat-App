@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat App</title>
+  </head>
+  <body>
+    <div class="chat-container">
+      <div id="message-list">
+        <!-- //List will contain message -->
+      </div>
+      <input type="text" id="message-input" />
+      <button id="send-message">Send</button>
+    </div>
+    <!-- Include Socket.IO JavaScript library from local server -->
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+
+    <script>
+      // Establishing a connection to the server using WebSockets
+      const socket = io.connect("http://localhost:3000");
+      const username = prompt("Enter your name");
+      //emit the username to the server.
+      socket.emit("join", username);
+
+      // Getting references to HTML elements
+      const messageInput = document.getElementById("message-input"); // Input field for entering messages
+      const messageList = document.getElementById("message-list"); // List to display messages
+      const sendButton = document.getElementById("send-message"); // Button to send messages
+
+      // Event listener for the send button
+      sendButton.addEventListener("click", function () {
+        // Read the message from the input field
+        const message = messageInput.value;
+        if (message) {
+          // Check if the message is not empty
+          // Emitting a 'new_message' event to the server with the message content
+          socket.emit("new_message", message);
+
+          // Adding the message to the message list
+          const messageElement = document.createElement("div"); // Create a new div element
+          messageElement.innerText = username + ":" + message; // Set the text content of the div to the message
+          messageList.appendChild(messageElement); // Append the div to the message list
+
+          messageInput.value = ""; // Clear the input field after sending the message
+        }
+      });
+
+      //Listen for broadcast message and add it to the list.
+      // Listening for a 'broadcast_message' event from the server
+        socket.on("broadcast_message", (userMessage) => { // Creating a new div element to display the received message
+        console.log(userMessage)
+        const messageElement = document.createElement("div");// Setting the text content of the div to the received message
+        
+        messageElement.innerText =userMessage.username + ":" + userMessage.message;// Appending the message div to the message list to display it
+        
+        messageList.appendChild(messageElement);
+      });
+    </script>
+  </body>
+</html>
