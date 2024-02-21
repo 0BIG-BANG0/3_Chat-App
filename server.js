@@ -2,6 +2,8 @@ import express from "express"
 import http from "http"
 import {Server} from 'socket.io'
 import cors from "cors"
+import { connect } from "./config.js"
+import { chatModel } from "./chat.schema.js"
 
 // Creating a express app
 const app = express()
@@ -44,6 +46,13 @@ socket.on('new_message', (message) => {
         username: socket.username,  // Assign the username stored in the socket object
         message: message  // Assign the received message
     };
+    //Just before broadcasting we will save it to database
+    const newChat = new chatModel({
+        username: socket.username,
+        message:  message,
+        timestamp: new Date()
+    })
+    newChat.save()
 
     // Broadcast the user's message to all connected clients except the current client
     // by emitting a "broadcast_message" event with the userMessage object.
@@ -63,4 +72,5 @@ socket.on('new_message', (message) => {
 //Start the server on the port 3000
 server.listen(3000, () =>{
     console.log("App is Listenig on port 3000")
+    connect();
 })
